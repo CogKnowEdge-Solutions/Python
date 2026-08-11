@@ -1,0 +1,43 @@
+[
+  {"id": 101, "name": "Wireless Mouse", "category": "Electronics", "price": 25.99, "currency": "USD", "stock": 40, "discontinued": false},
+  {"id": 102, "name": "Mechanical Keyboard", "category": "Electronics", "price": 89.5, "currency": "USD", "stock": 0, "discontinued": false},
+  {"id": 103, "name": "USB-C Hub", "category": "Electronics", "price": "34.99", "currency": "USD", "stock": 15, "discontinued": false},
+  {"id": 104, "name": "Bluetooth Earbuds", "category": "Electronics", "pricing": {"base": 59.99, "currency": "EUR"}, "stock": 22, "discontinued": false},
+  {"id": 105, "name": "Old Model Webcam", "category": "Electronics", "price": 19.99, "currency": "USD", "stock": 8, "discontinued": true},
+  {"id": 106, "name": "Portable SSD 1TB", "category": "Electronics", "price": 109.0, "currency": "USD", "qty": 12, "discontinued": false},
+  {"id": 107, "name": "Gaming Monitor 27in", "category": "Electronics", "price": 249.99, "currency": "USD", "stock": 5, "discontinued": false},
+  {"id": 108, "name": "Smartwatch Series 3", "category": "Electronics", "price": null, "currency": "USD", "stock": 10, "discontinued": false},
+  {"id": 109, "name": "Noise Cancelling Headphones", "category": "Electronics", "price": 199.99, "currency": "USD", "status": "unavailable", "discontinued": false},
+
+  {"id": 201, "name": "Stainless Steel Water Bottle", "category": "Home & Kitchen", "price": 14.99, "currency": "USD", "stock": 60, "discontinued": false},
+  {"id": 202, "name": "Non-Stick Frying Pan", "category": "Home & Kitchen", "price": "29.99", "currency": "USD", "stock": 18, "discontinued": false},
+  {"id": 203, "name": "Electric Kettle", "category": "Home & Kitchen", "pricing": {"base": 22.5, "currency": "GBP"}, "stock": 0, "discontinued": false},
+  {"id": 204, "name": "Ceramic Dinner Set", "category": "Home & Kitchen", "price": 45.0, "currency": "USD", "stock": 7, "discontinued": false},
+  {"id": 205, "name": "Discontinued Toaster", "category": "Home & Kitchen", "price": 39.99, "currency": "USD", "stock": 3, "discontinued": true},
+  {"id": 206, "name": "Vacuum Sealer", "category": "Home & Kitchen", "price": 54.99, "currency": "USD", "stock": 9, "discontinued": false},
+  {"id": 207, "name": "Cast Iron Skillet", "category": "Home & Kitchen", "price": 32.0, "currency": "USD", "status": "unavailable", "discontinued": false},
+  {"id": 208, "name": "Coffee Grinder", "category": "Home & Kitchen", "price": "17.5", "currency": "USD", "stock": 25, "discontinued": false},
+
+  {"id": 301, "name": "Running Shoes", "category": "Apparel", "price": 64.99, "currency": "USD", "stock": 33, "discontinued": false},
+  {"id": 302, "name": "Denim Jacket", "category": "Apparel", "price": 79.99, "currency": "USD", "stock": 0, "discontinued": false},
+  {"id": 303, "name": "Wool Beanie", "category": "Apparel", "pricing": {"base": 12.99, "currency": "USD"}, "stock": 50, "discontinued": false},
+  {"id": 304, "name": "Leather Belt", "category": "Apparel", "price": 24.99, "currency": "USD", "stock": 14, "discontinued": false},
+  {"id": 305, "name": "Old Season Hoodie", "category": "Apparel", "price": 34.99, "currency": "USD", "stock": 6, "discontinued": true},
+  {"id": 306, "name": "Rain Jacket", "category": "Apparel", "price": null, "currency": "USD", "stock": 11, "discontinued": false},
+  {"id": 307, "name": "Cotton T-Shirt", "category": "Apparel", "price": 9.99, "currency": "USD", "stock": 100, "discontinued": false},
+
+  {"id": 401, "name": "Yoga Mat", "category": "Sports & Outdoors", "price": 19.99, "currency": "USD", "stock": 27, "discontinued": false},
+  {"id": 402, "name": "Adjustable Dumbbells", "category": "Sports & Outdoors", "price": 129.99, "currency": "USD", "stock": 4, "discontinued": false},
+  {"id": 403, "name": "Camping Tent 2-Person", "category": "Sports & Outdoors", "pricing": {"base": 89.99, "currency": "USD"}, "stock": 0, "discontinued": false},
+  {"id": 404, "name": "Discontinued Hiking Poles", "category": "Sports & Outdoors", "price": 22.5, "currency": "USD", "stock": 2, "discontinued": true},
+  {"id": 405, "name": "Insulated Water Bottle", "category": "Sports & Outdoors", "price": "17.99", "currency": "USD", "stock": 41, "discontinued": false},
+  {"id": 406, "name": "Cycling Helmet", "category": "Sports & Outdoors", "price": 49.99, "currency": "USD", "status": "unavailable", "discontinued": false},
+  {"id": 407, "name": "Resistance Bands Set", "category": "Sports & Outdoors", "price": 15.0, "currency": "USD", "stock": 35, "discontinued": false},
+
+  {"id": 501, "name": "Bestselling Novel", "category": "Books", "price": 12.99, "currency": "USD", "stock": 70, "discontinued": false},
+  {"id": 502, "name": "Cookbook: World Cuisines", "category": "Books", "price": "24.99", "currency": "USD", "stock": 19, "discontinued": false},
+  {"id": 503, "name": "Children's Picture Book", "category": "Books", "pricing": {"base": 8.5, "currency": "USD"}, "stock": 0, "discontinued": false},
+  {"id": 504, "name": "Outdated Programming Guide", "category": "Books", "price": 39.99, "currency": "USD", "stock": 5, "discontinued": true},
+  {"id": 505, "name": "Self-Help Bestseller", "category": "Books", "price": 16.99, "currency": "USD", "qty": 28, "discontinued": false},
+  {"id": 506, "name": "Poetry Collection", "category": "Books", "price": null, "currency": "USD", "stock": 12, "discontinued": false}
+]
