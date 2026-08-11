@@ -38,9 +38,10 @@ rather than a list, and what happens to the generator after the call.
 max(seconds_and_counts(read_log_lines("data/server.log")), key=lambda kv: kv[1])
 ```
 
-**Q8.** In the lab, `sys.getsizeof(lines_list)` was ~1,140,568 bytes and
-`sys.getsizeof(gen)` was 232 bytes. Give one reason this understates the real
-memory saving of the generator.
+**Q8.** In the lab, `sys.getsizeof(lines_list)` was a few megabytes and
+`sys.getsizeof(gen)` was a few hundred bytes (exact values vary by Python
+version/environment). Give one reason this understates the real memory saving of
+the generator.
 
 **Q9 (Challenge).** Rewrite `read_log_lines` as `read_log_chunks(path,
 chunk_size=1000)` that yields a *list* of up to `chunk_size` lines at a time,
@@ -81,8 +82,9 @@ it never needs the whole list. After the call, the generator is exhausted and
 must be re-created to be used again.
 
 **A8.** `sys.getsizeof(list)` counts the array of *pointers* (8 bytes per line),
-not the string objects they point to; the list is truly holding far more than
-~1.1 MB of data, so the generator's saving is even larger than measured.
+not the string objects they point to; the list is truly holding far more data
+than the shallow number shows, so the generator's saving is even larger than
+measured.
 
 **A9.** Example solution:
 

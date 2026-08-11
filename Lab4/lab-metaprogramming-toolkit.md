@@ -15,37 +15,30 @@ logging, performance tracking, security, and caching to a messy codebase
 
 ## 2. Problem Statement / Use Case Overview
 
-You inherit a working but messy backend. The core functions — finding primes,
-deleting a user, fetching orders, computing a price — are correct, but they
-lack everything production code needs: nobody knows how slow they are, the
-sensitive ones are callable by anyone, flaky network calls fail the whole
-request, and expensive results get recomputed over and over.
+You inherit a working but messy backend: nobody knows how slow the functions
+are, the sensitive ones are callable by anyone, flaky network calls fail the
+whole request, and expensive results get recomputed over and over.
 
-Editing each function to add timing, a role check, retry logic, or a cache
-would bloat it and bury the business logic. Python's **decorators** solve this
-by wrapping a function with another function: the core stays untouched, and
-the administrative work happens *around* it. This lab builds the four-decorator
-toolkit from scratch — closures, `*args/**kwargs`, and `functools.wraps` — and
-proves each one with a working demo. This is **aspect-oriented programming**:
-separating cross-cutting concerns (timing, security, resilience, caching) from
-core business logic.
+**Decorators** wrap a function with another function, so the core stays
+untouched while timing, security, retry, and caching happen *around* it. This
+lab builds a four-decorator toolkit (`@timer`, `@authenticate`, `@retry`,
+`@cache`) from scratch — closures, `*args/**kwargs`, `functools.wraps` — and
+proves each one with a working demo.
 
 ---
 
 ## 3. Input Data
 
-There is **no external input data** and no API keys. The lab exercises decorators
-against small in-code functions:
+No external files, no API keys. The lab decorates four small in-code functions:
 
-- `find_primes(limit)` — a number-theory workload for `@timer`.
-- `delete_user(user_id)` — a protected action guarded by `@authenticate`, gated on a
-  simulated global `current_user` dict.
-- `fetch_orders()` — a function that fails like a flaky network call, for `@retry`.
-- `expensive(n)` — a deliberately slow computation, for `@cache`.
+- `find_primes(limit)` — number-theory workload for `@timer`.
+- `delete_user(user_id)` — protected action for `@authenticate` (a simulated
+  global `current_user` dict gates access).
+- `fetch_orders()` — fails like a flaky network call, for `@retry`.
+- `expensive(n)` — deliberately slow computation, for `@cache`.
 
-Everything is deterministic in code; the only random element (`random`) is
-imported so learners can swap the deterministic flaky counter for real random
-failures in Section 11.
+Everything is deterministic in code; `random` is imported only so learners can
+swap the deterministic flaky counter for real random failures (Section 11).
 
 ---
 
@@ -68,21 +61,17 @@ failures in Section 11.
 
 ## 5. Output
 
-All values below were captured from a clean run of the notebook. The one
-machine-dependent value is the elapsed time in `@timer` — the number will differ,
-the shape won't.
+All values are from a clean run. The only machine-dependent value is the
+`@timer` elapsed time — the number differs, the shape doesn't.
 
-- Warm up: `HELLO TEAM!`, then `function name is now: wrapper` — the hand-rolled
-  wrapper hid the original name (the problem `functools.wraps` fixes).
-- `@timer`: `find_primes ran in 0.0027s` followed by `primes found: 303`.
-- `@authenticate`: `Deleted user 7`, then after switching the role:
-  `Denied: alice needs role 'admin'`.
-- `@retry`: two failures then success:
-  `Attempt 1 failed: gateway timed out`, `Attempt 2 failed: gateway timed out`,
-  `['order A', 'order B']`. With more failures than attempts:
+- Warm up: `HELLO TEAM!`, then `function name is now: wrapper`.
+- `@timer`: `find_primes ran in 0.0033s` then `primes found: 303`.
+- `@authenticate`: `Deleted user 7`; after the role switch, `Denied: alice needs role 'admin'`.
+- `@retry`: `Attempt 1 failed: gateway timed out`, `Attempt 2 failed: ...`, then
+  `['order A', 'order B']`; running out of attempts prints
   `giving up after 3 attempts: gateway timed out`.
 - `@cache`: the first `expensive(10)` prints `computing expensive ...`, the
-  second call is silent (cache hit), and `expensive(12)` computes again:
+  second call is silent (cache hit), `expensive(12)` computes again:
 
 ```
 computing expensive ...
@@ -92,7 +81,7 @@ computing expensive ...
 144
 ```
 
-Final ledger — the objective in one glance:
+Final ledger:
 
 ```
 +---------------+-----------------------+------------------------------+
@@ -221,28 +210,18 @@ spent.
 
 ## 9. Environment / Dependencies Setup
 
-You need Python 3.9 or newer. Run these commands in a terminal from the folder
-that contains this lab:
+Python 3.9+. From the lab folder:
 
 ```bash
-# 1. Check your Python version (must be 3.9+)
-python --version
-
-# 2. Create and activate a clean virtual environment (optional but recommended)
-python -m venv .venv
-# Windows:        .venv\Scripts\activate
-# macOS / Linux:  source .venv/bin/activate
-
-# 3. Install the one dependency plus Jupyter, in a single line
+python --version                    # must be 3.9+
+python -m venv .venv                # optional but recommended
+.venv\Scripts\activate              # Windows (macOS/Linux: source .venv/bin/activate)
 pip install tabulate==0.10.0 notebook
-
-# 4. Launch Jupyter and open the notebook
 jupyter notebook lab-metaprogramming-toolkit.ipynb
 ```
 
-The notebook's **first cell** also runs `!pip install tabulate==0.10.0`, so even
-if you skip these steps and open the notebook in any existing Jupyter/VS Code
-environment, running the first cell installs everything you need.
+The notebook's **first cell** also runs `!pip install tabulate==0.10.0`, so any
+existing Jupyter/VS Code environment works — run the first cell and you're set.
 
 ---
 

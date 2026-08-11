@@ -20,6 +20,10 @@ venv/
 *.egg-info/
 dist/
 build/
+.pytest_cache/
+
+# Lab runtime artifacts
+vault_notes.txt
 
 # Node
 node_modules/

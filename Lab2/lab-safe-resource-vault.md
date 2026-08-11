@@ -17,29 +17,25 @@ roll-back-on-error transaction.
 ## 2. Problem Statement / Use Case Overview
 
 You maintain the backend of a multi-user web app. Every request opens a database
-connection, and most run a *transaction*: several statements that must either all
-succeed or all be undone. A crash mid-request must never leave a connection open or a
-half-finished transaction in the database — other users are waiting on that connection,
-and an aborted transaction could leave the accounts table half-updated.
+connection, and most run a *transaction* — several statements that must all succeed or
+all be undone. A crash mid-request must never leave a connection open or a
+half-finished transaction behind.
 
 Hand-rolling cleanup with `try/finally` everywhere is easy to forget and easy to get
 wrong. Python's **`with` statement** solves this with **context managers**: objects
-that promise to acquire a resource on entry and *always* release it on exit, whether
-your code succeeded or raised an error. This lab builds three of them — a class-based
-connection manager, its compact `contextlib` twin, and a transaction that commits on
-success and rolls back on error — and proves each one cleans up even when the block
-crashes. That guarantee is the difference between code that works in the happy path and
-code that works in production.
+that release their resource *always*, whether your code succeeded or raised an error.
+This lab builds three of them — a class-based connection manager, its compact
+`contextlib` twin, and a transaction that commits on success and rolls back on error —
+and proves each one cleans up even when the block crashes.
 
 ---
 
 ## 3. Input Data
 
-There is **no external input data**. Every resource in this lab is simulated in code —
-the "database" is a class that prints what a real connection would do, so you can see
-the lifecycle without setting up a server. The only file touched is `vault_notes.txt`,
-which the notebook itself creates and closes in Section 0 to demonstrate the `with`
-statement on a real file. Nothing to download, no API keys.
+There is **no external input data**. The "database" is a class that prints what a real
+connection would do, so you can see the lifecycle without setting up a server. The only
+file touched is `vault_notes.txt`, created by the notebook itself. Nothing to download,
+no API keys.
 
 ---
 
@@ -61,37 +57,11 @@ statement on a real file. Nothing to download, no API keys.
 
 ## 5. Output
 
-All values below were captured from a clean run of the notebook.
-
-- Warm-up protocol demo: prints `entering`, `inside the block`, then `exiting` — the
-  `__enter__` / `__exit__` call order in action.
-- File closes itself: `After the with block, is the file closed? True`.
-- Part 1 — normal block: `Opening users connection...`, `Running a query inside the
-  block...`, `Closing users connection...` — three lines, cleanup last.
-- Cleanup survives a crash (class and `@contextmanager` behave identically):
-  `Closing users connection...` / `Closing orders connection...` print *before*
-  `Caught outside the block: query timed out mid-request`.
-- Commit on success: `COMMIT 2 statement(s)`; the log is kept:
-  `Transaction log stored: ['INSERT INTO payments VALUES (1, 49.99)', ...]`.
-- Roll back on error: `ROLLBACK 1 statement(s)`; `Statements kept after rollback: []`.
-
-Final ledger — every resource ended closed, committed, or rolled back:
-
-```
-+----------------------+----------------+------------------------+
-| Resource             | Action         | Outcome                |
-+======================+================+========================+
-| vault_notes.txt      | write notes    | closed                 |
-+----------------------+----------------+------------------------+
-| users connection     | SELECT + crash | closed, error surfaced |
-+----------------------+----------------+------------------------+
-| orders connection    | SELECT         | closed                 |
-+----------------------+----------------+------------------------+
-| payments transaction | 2 statements   | committed              |
-+----------------------+----------------+------------------------+
-| payments transaction | 1 statement    | rolled back            |
-+----------------------+----------------+------------------------+
-```
+Each step prints a short confirmation of its lifecycle — e.g. `Closing users
+connection...` before any error surfaces, `COMMIT 2 statement(s)` after a successful
+block, `ROLLBACK 1 statement(s)` after a failed one. The final output is a ledger table
+of every resource (`Resource`, `Action`, `Outcome`) showing each one ended `closed`,
+`committed`, or `rolled back`.
 
 ---
 
@@ -196,28 +166,19 @@ runs in the reverse order of acquisition, like a stack.
 
 ## 9. Environment / Dependencies Setup
 
-You need Python 3.9 or newer. Run these commands in a terminal from the folder that
-contains this lab:
+You need Python 3.9 or newer. The lab uses only the standard library (`with`,
+`try/finally`, `contextlib`) plus one third-party package to render the ledger table:
 
 ```bash
-# 1. Check your Python version (must be 3.9+)
+# Check your Python version (must be 3.9+)
 python --version
 
-# 2. Create and activate a clean virtual environment (optional but recommended)
-python -m venv .venv
-# Windows:        .venv\Scripts\activate
-# macOS / Linux:  source .venv/bin/activate
-
-# 3. Install the one dependency plus Jupyter, in a single line
-pip install tabulate==0.10.0 notebook
-
-# 4. Launch Jupyter and open the notebook
-jupyter notebook lab-safe-resource-vault.ipynb
+# Install the one dependency
+pip install tabulate==0.10.0
 ```
 
-The notebook's **first cell** also runs `!pip install tabulate==0.10.0`, so even if you
-skip these steps and open the notebook in any existing Jupyter/VS Code environment,
-running the first cell installs everything you need.
+The notebook's **first cell** runs `!pip install tabulate==0.10.0`, so running it
+installs everything you need.
 
 ---
 
@@ -246,6 +207,7 @@ block ends. After the block, `note_file` still refers to the file object, but `.
 is `True`.
 
 ```python
+# A real file: the with statement closes it automatically when the block ends.
 with open("vault_notes.txt", "w", encoding="utf-8") as note_file:
     note_file.write("The vault always closes what it opens.\n")
 
@@ -262,6 +224,7 @@ succeeded; here they're ignored, we just print. `__exit__` returns `False` — t
 "don't hide any error" convention used everywhere below.
 
 ```python
+# __enter__ runs at the start of the with block, __exit__ at the end — always.
 class TinyVault:
     def __enter__(self):
         print("entering")
@@ -269,6 +232,7 @@ class TinyVault:
 
     def __exit__(self, exc_type, exc_value, traceback):
         print("exiting")
+        # return False lets exceptions propagate to the caller.
         return False
 
 with TinyVault():
@@ -296,11 +260,11 @@ class DatabaseConnection:
 
     def __enter__(self):
         print(f"Opening {self.db_name} connection...")
-        return self
+        return self  # `as connection` binds this
 
     def __exit__(self, exc_type, exc_value, traceback):
         print(f"Closing {self.db_name} connection...")
-        return False
+        return False  # re-raise errors from the block
 
 with DatabaseConnection("users") as connection:
     print("Running a query inside the block...")
@@ -336,8 +300,9 @@ import contextlib
 @contextlib.contextmanager
 def database_connection(db_name):
     print(f"Opening {db_name} connection...")
+    # try/finally mirrors __exit__: teardown always runs.
     try:
-        yield
+        yield  # the with block body runs here
     finally:
         print(f"Closing {db_name} connection...")
 
@@ -374,7 +339,7 @@ return value (`self`), so the block can call `transaction.execute(...)`.
 class DatabaseTransaction:
     def __init__(self, connection):
         self.connection = connection
-        self.statements = []
+        self.statements = []  # the log, kept on commit, cleared on rollback
 
     def execute(self, statement):
         self.statements.append(statement)
@@ -385,12 +350,12 @@ class DatabaseTransaction:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type is None:
+        if exc_type is None:  # block succeeded -> commit
             print(f"COMMIT {len(self.statements)} statement(s)")
         else:
             print(f"ROLLBACK {len(self.statements)} statement(s)")
-            self.statements.clear()
-        return False
+            self.statements.clear()  # discard the failed work
+        return False  # let the error reach the caller
 
 with DatabaseConnection("payments") as connection:
     with DatabaseTransaction(connection) as transaction:
@@ -407,11 +372,12 @@ Same transaction, but the block raises before finishing. `__exit__` sees the exc
 and re-raises so the caller can handle the error.
 
 ```python
+# The block raises, so __exit__ rolls the work back instead of committing.
 try:
     with DatabaseConnection("payments") as connection:
         with DatabaseTransaction(connection) as transaction:
             transaction.execute("INSERT INTO payments VALUES (2, 199.99)")
-            raise RuntimeError("payment gateway timed out")
+            raise RuntimeError("payment gateway timed out")  # simulate a mid-transaction crash
 except RuntimeError as error:
     print("Caught outside the block:", error)
 

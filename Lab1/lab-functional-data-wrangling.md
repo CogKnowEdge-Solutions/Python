@@ -16,18 +16,14 @@ messy JSON product catalog into a clean, ranked table in one pipeline.
 
 ## 2. Problem Statement / Use Case Overview
 
-You are a data analyst at an online electronics store. Marketing just exported the
-product catalog from their database to JSON, and the export is messy: prices are
-sometimes numbers, sometimes strings, and sometimes `null`; some prices are buried in
-a nested `pricing` dict that records its own currency; and stock counts vanish from
-some records or hide under a different key. Your manager wants a usable answer, fast:
-*which products are actually on sale — not discontinued, in stock, and with a usable
-price — priced in euros with a 10% clearance discount, ranked by category and then by
-price?* Writing a named function for every single step would clutter the notebook with
-one-use `def`s. Instead, this lab composes Python's three functional tools —
-`filter()`, `map()`, and `sorted()` — each handed a short **lambda**, and reads the
-whole job as one clean pipeline. After it, a messy JSON export becomes a ranked table
-in a single expression.
+You are a data analyst at an online electronics store. Marketing exported the product
+catalog to JSON, and it's messy: prices are sometimes strings or `null`, some are
+buried in a nested `pricing` dict that records its own currency, and stock counts go
+missing. Your manager wants a quick answer: *which products are actually sellable —
+not discontinued, in stock, and with a usable price — priced in euros at a 10%
+clearance discount, ranked by category and then by price?* Rather than write a `def`
+per step, this lab composes `filter()`, `map()`, and `sorted()` with short **lambdas**
+into one clean pipeline.
 
 ---
 
@@ -49,10 +45,10 @@ Nothing to download, no API keys.
 3. **Part 1 — `filter()` + lambda**: keep only products that are *not* discontinued,
    *have* stock greater than zero (defaulting to `qty`, then to `0`), *and* have a
    usable (non-`None`) price.
-4. **Part 2 — `map()` + lambda**: reshape each surviving product into a clean
-   dictionary. A small named function `to_usd()` normalizes the mixed currencies
-   (`USD`/`EUR`/`GBP`) to a single USD figure, then the lambda converts to euros
-   (rate 0.92), applies a 10% discount, and rounds to 2 decimals.
+4. **Part 2 — normalize, then reshape with `map()` + lambda**: first a small named
+   function `to_usd()` normalizes the mixed currencies (`USD`/`EUR`/`GBP`) to a single
+   USD figure; then the lambda converts to euros (rate 0.92), applies a 10% discount,
+   and rounds to 2 decimals.
 5. **Part 3 — `sorted()` + lambda key**: order the final dictionaries by category
    (A–Z), then by price within each category, highest first — one tuple key.
 6. **Full pipeline**: compose `filter → map → sorted` into a single expression.
@@ -61,100 +57,10 @@ Nothing to download, no API keys.
 
 ## 5. Output
 
-Each cell prints the result of the step it just demonstrated. The loading cell reports
-how many records came out of the JSON:
-
-```
-Loaded 37 product records.
-```
-
-The inspection step shows the mixed types and missing values (a representative sample;
-the real output prints all 37):
-
-```
-101 | price type: float | price: 25.99 | stock: 40 | status: -
-103 | price type: str   | price: '34.99' | stock: 15 | status: -
-104 | price type: float | price: 59.99 | stock: 22 | status: -
-108 | price type: NoneType | price: None | stock: 10 | status: -
-109 | price type: float | price: 199.99 | stock: 'MISSING' | status: unavailable
-...
-```
-
-Part 1 leaves exactly 21 sellable products:
-
-```
-Active, in-stock products: 21
-  101 Wireless Mouse
-  103 USB-C Hub
-  104 Bluetooth Earbuds
-  106 Portable SSD 1TB
-  ...
-  505 Self-Help Bestseller
-```
-
-Part 2 converts them to euros, normalizing the mixed currencies first (sample):
-
-```
-Electronics - Wireless Mouse -> EUR 23.91
-Electronics - Bluetooth Earbuds -> EUR 59.61
-Apparel - Running Shoes -> EUR 59.79
-Books - Cookbook: World Cuisines -> EUR 22.99
-...
-```
-
-Part 3 orders by category, then price (highest first), and the final pipeline prints
-the ranked table:
-
-```
-+-------------------+------------------------------+---------------+--------------+
-| Category          | Name                         |   Price (EUR) |   Sale (EUR) |
-+===================+==============================+===============+==============+
-| Apparel           | Running Shoes                |         59.79 |        53.81 |
-+-------------------+------------------------------+---------------+--------------+
-| Apparel           | Leather Belt                 |         22.99 |        20.69 |
-+-------------------+------------------------------+---------------+--------------+
-| Apparel           | Wool Beanie                  |         11.95 |        10.76 |
-+-------------------+------------------------------+---------------+--------------+
-| Apparel           | Cotton T-Shirt               |          9.19 |         8.27 |
-+-------------------+------------------------------+---------------+--------------+
-| Books             | Cookbook: World Cuisines     |         22.99 |        20.69 |
-+-------------------+------------------------------+---------------+--------------+
-| Books             | Self-Help Bestseller         |         15.63 |        14.07 |
-+-------------------+------------------------------+---------------+--------------+
-| Books             | Bestselling Novel            |         11.95 |        10.76 |
-+-------------------+------------------------------+---------------+--------------+
-| Electronics       | Gaming Monitor 27in          |        229.99 |       206.99 |
-+-------------------+------------------------------+---------------+--------------+
-| Electronics       | Portable SSD 1TB             |        100.28 |        90.25 |
-+-------------------+------------------------------+---------------+--------------+
-| Electronics       | Bluetooth Earbuds            |         59.61 |        53.65 |
-+-------------------+------------------------------+---------------+--------------+
-| Electronics       | USB-C Hub                    |         32.19 |        28.97 |
-+-------------------+------------------------------+---------------+--------------+
-| Electronics       | Wireless Mouse               |         23.91 |        21.52 |
-+-------------------+------------------------------+---------------+--------------+
-| Home & Kitchen    | Vacuum Sealer                |         50.59 |        45.53 |
-+-------------------+------------------------------+---------------+--------------+
-| Home & Kitchen    | Ceramic Dinner Set           |         41.4  |        37.26 |
-+-------------------+------------------------------+---------------+--------------+
-| Home & Kitchen    | Non-Stick Frying Pan         |         27.59 |        24.83 |
-+-------------------+------------------------------+---------------+--------------+
-| Home & Kitchen    | Coffee Grinder               |         16.1  |        14.49 |
-+-------------------+------------------------------+---------------+--------------+
-| Home & Kitchen    | Stainless Steel Water Bottle |         13.79 |        12.41 |
-+-------------------+------------------------------+---------------+--------------+
-| Sports & Outdoors | Adjustable Dumbbells         |        119.59 |       107.63 |
-+-------------------+------------------------------+---------------+--------------+
-| Sports & Outdoors | Yoga Mat                     |         18.39 |        16.55 |
-+-------------------+------------------------------+---------------+--------------+
-| Sports & Outdoors | Insulated Water Bottle       |         16.55 |        14.9  |
-+-------------------+------------------------------+---------------+--------------+
-| Sports & Outdoors | Resistance Bands Set         |         13.8  |        12.42 |
-+-------------------+------------------------------+---------------+--------------+
-```
-
-Confirmation messages such as `Loaded 37 product records.` and
-`Same result: True | kept: 21` tell you each cell ran successfully.
+Each cell prints the result of the step it just demonstrated. The final output is a
+ranked table of 21 sellable products, in euros with a 10% clearance discount, ordered
+by category (A-Z) and then by price (highest first), with columns for `Category`,
+`Name`, `Price (EUR)`, and `Sale (EUR)`.
 
 ---
 
@@ -258,30 +164,21 @@ dictionaries.
 
 ## 9. Environment / Dependencies Setup
 
-You need Python 3.9 or newer. Run these commands in a terminal from the folder that
-contains this lab (the `data/` folder with `product_catalog.json` must sit next to the
-notebook):
+You need Python 3.9 or newer. This lab uses only the standard library — `json`,
+`lambda`, `map()`, `filter()`, `sorted()` — plus one third-party package to display
+the final table:
 
 ```bash
-# 1. Check your Python version (must be 3.9+)
+# Check your Python version (must be 3.9+)
 python --version
 
-# 2. Create and activate a clean virtual environment (optional but recommended)
-python -m venv .venv
-# Windows:        .venv\Scripts\activate
-# macOS / Linux:  source .venv/bin/activate
-
-# 3. Install the one dependency plus Jupyter, in a single line
-pip install tabulate==0.10.0 notebook
-
-# 4. Launch Jupyter and open the notebook
-jupyter notebook lab-functional-data-wrangling.ipynb
+# Install the one dependency
+pip install tabulate==0.10.0
 ```
 
-The notebook's **Step 1 — Install the dependency** cell also runs
-`!{sys.executable} -m pip install tabulate==0.10.0`, so even if you skip these steps
-and open the notebook in any existing Jupyter/VS Code environment, running that cell
-installs everything you need.
+The notebook's **Step 1 — Install the dependency** cell runs
+`pip install tabulate==0.10.0`, so running that cell installs everything you need. Keep
+the `data/` folder with `product_catalog.json` next to the notebook.
 
 ---
 
@@ -338,17 +235,23 @@ from the lab folder, the relative path `data/product_catalog.json` works. The re
 exactly the kind of inconsistent export described in Section 3.
 
 ```python
-# Load the catalog from the JSON file that ships with this lab. The notebook
-# runs from the lab folder, so the relative path "data/product_catalog.json" works.
+# Manual open/load/close; Python's "with" statement automates this — covered in Lab 2.
 import json
 
-with open("data/product_catalog.json", encoding="utf-8") as f:
-    catalog = json.load(f)
+f = open("data/product_catalog.json", encoding="utf-8")
+catalog = json.load(f)
+f.close()
 
 print("Loaded", len(catalog), "product records.")
 ```
 
 This prints `Loaded 37 product records.`
+
+**Note on `with`.** The lines above open the file, load the JSON, and close it — that's
+the manual way to read a file. Python also has a **`with` statement** that opens the
+file and closes it for you automatically, even if the code inside the block raises an
+error. We don't use it in this lab; it's covered in detail in **Lab 2 (The Safe Resource
+Vault — Context Managers)**.
 
 ### Step 3 — Inspect the mess
 
@@ -392,19 +295,17 @@ for product in active:
 
 This prints `Active, in-stock products: 21` followed by the 21 product ids.
 
-### Step 5 — Part 2: transform with `map()`
+### Step 5a — Part 2a: normalize currency to USD
 
-Reshape each surviving product into a clean dictionary. Prices arrive in three
-currencies depending on where the record stored them, so a small named function
-`to_usd()` normalizes every price to a single USD figure first; the map lambda then
-converts to euros, applies a 10% discount, and rounds to 2 decimals. `to_usd()` is a
-`def`, not a lambda, on purpose — it is reused by the rest of the lab (Steps 7–8), and
-squeezing two lookup paths plus a currency table into one expression would be
-unreadable.
+Prices arrive in three currencies depending on where the record stored them, so a
+small named function `to_usd()` normalizes every price to a single USD figure first.
+It is a `def`, not a lambda, on purpose — it is reused by the rest of the lab
+(Steps 7–8), and squeezing two lookup paths plus a currency table into one expression
+would be unreadable.
 
 ```python
-# PART 2 — normalize currency, convert to EUR, apply a 10% clearance discount.
-# to_usd() extracts the price from either location and converts it to USD so every
+# PART 2a — normalize the mixed currencies to one unit: USD.
+# to_usd() extracts the price from either location and converts it to USD, so every
 # product is in the same unit before the EUR conversion and discount apply.
 usd_per_currency = {"USD": 1.0, "EUR": 1.08, "GBP": 1.27}
 usd_to_eur = 0.92
@@ -416,8 +317,17 @@ def to_usd(product):
         return float(product["price"]) * usd_per_currency[product.get("currency", "USD")]
     nested = product.get("pricing", {})
     return float(nested["base"]) * usd_per_currency[nested.get("currency", "USD")]
+```
 
+### Step 5b — Part 2b: convert, discount, round with `map()`
 
+Now every price is one USD figure, so a single `map()` with a lambda reshapes each
+active product into a clean dictionary: USD → euros (rate 0.92), then a 10% clearance
+discount for the sale price, rounding both to 2 decimals.
+
+```python
+# PART 2b — convert to EUR, apply the 10% clearance discount, round to 2 decimals.
+# One map() with a lambda reshapes each active product into a clean dictionary.
 priced = list(map(lambda product: {
     "name": product["name"],
     "category": product["category"],

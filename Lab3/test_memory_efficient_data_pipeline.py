@@ -95,7 +95,7 @@ class TestPart2Generator:
 class TestSpikes:
     def test_busiest_second_found(self, executed_nb):
         text = output_of(executed_nb, "Busiest second:")
-        assert "('00:13:38', 500)" in text
+        assert "('2026-08-09 00:13:38', 500)" in text
 
     def test_spike_count(self, executed_nb):
         text = output_of(executed_nb, "n_spikes")
