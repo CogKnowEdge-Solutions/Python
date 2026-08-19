@@ -29,73 +29,29 @@ proves each one with a working demo.
 
 ## 3. Input Data
 
-No external files, no API keys. The lab decorates four small in-code functions:
-
-- `find_primes(limit)` — number-theory workload for `@timer`.
-- `delete_user(user_id)` — protected action for `@authenticate` (a simulated
-  global `current_user` dict gates access).
-- `fetch_orders()` — fails like a flaky network call, for `@retry`.
-- `expensive(n)` — deliberately slow computation, for `@cache`.
-
-Everything is deterministic in code; `random` is imported only so learners can
-swap the deterministic flaky counter for real random failures (Section 11).
+Not required — all four functions (`find_primes`, `delete_user`,
+`fetch_orders`, `expensive`) are defined in-code. No external files, datasets,
+or API keys.
 
 ---
 
 ## 4. Processing
 
-1. **Warm up** — prove a function can wrap another function by hand, and see
-   what the naive approach costs (the original function's name is lost).
-2. **Part 1 — `@timer`**: measure and print elapsed time, returning the
+1. **Part 1 — `@timer`**: measure and print elapsed time, returning the
    function's result untouched.
-3. **Part 2 — `@authenticate(role="admin")`**: a *decorator factory* that checks
+2. **Part 2 — `@authenticate(role="admin")`**: a *decorator factory* that checks
    a shared user state and raises `PermissionError` on a role mismatch.
-4. **Part 3 — `@retry(max_attempts=3)`**: re-run a function that raises
+3. **Part 3 — `@retry(max_attempts=3)`**: re-run a function that raises
    `ConnectionError`, then give up with a clear error after the attempts run out.
-5. **Part 4 — `@cache`**: memoize results in a closure-held dict keyed by the
+4. **Part 4 — `@cache`**: memoize results in a closure-held dict keyed by the
    call's arguments, skipping re-computation on a hit.
-6. **The ledger** — render every decorator, the concern it handles, and its demo
-   outcome as a `tabulate` table.
 
 ---
 
 ## 5. Output
 
-All values are from a clean run. The only machine-dependent value is the
-`@timer` elapsed time — the number differs, the shape doesn't.
-
-- Warm up: `HELLO TEAM!`, then `function name is now: wrapper`.
-- `@timer`: `find_primes ran in 0.0033s` then `primes found: 303`.
-- `@authenticate`: `Deleted user 7`; after the role switch, `Denied: alice needs role 'admin'`.
-- `@retry`: `Attempt 1 failed: gateway timed out`, `Attempt 2 failed: ...`, then
-  `['order A', 'order B']`; running out of attempts prints
-  `giving up after 3 attempts: gateway timed out`.
-- `@cache`: the first `expensive(10)` prints `computing expensive ...`, the
-  second call is silent (cache hit), `expensive(12)` computes again:
-
-```
-computing expensive ...
-100
-100
-computing expensive ...
-144
-```
-
-Final ledger:
-
-```
-+---------------+-----------------------+------------------------------+
-| Decorator     | Concern               | Demo outcome                 |
-+===============+=======================+==============================+
-| @timer        | performance tracking  | prints elapsed seconds       |
-+---------------+-----------------------+------------------------------+
-| @authenticate | access control        | admin allowed, viewer denied |
-+---------------+-----------------------+------------------------------+
-| @retry        | flaky-call resilience | 2 retries then success       |
-+---------------+-----------------------+------------------------------+
-| @cache        | avoid re-computation  | computed once, reused twice  |
-+---------------+-----------------------+------------------------------+
-```
+Not required — each decorator prints its own result when you run the notebook.
+No separate output files are produced.
 
 ---
 
@@ -103,9 +59,7 @@ Final ledger:
 
 - **Python 3.9+** — the entire lab runs on the standard library:
   - `functools.wraps` — preserves a wrapped function's name and docstring,
-  - `time.perf_counter` — high-precision timing for `@timer`,
-  - `random` — available for the flaky-call simulation (deterministic by default),
-  - `tabulate == 0.10.0` — used only to render the final ledger table.
+  - `time.perf_counter` — high-precision timing for `@timer`.
 
 No GPU, no API keys, no paid services. Runs on any laptop CPU with a few MB of RAM.
 
@@ -115,81 +69,156 @@ No GPU, no API keys, no paid services. Runs on any laptop CPU with a few MB of R
 
 ### Functions are objects
 
-`def` creates a function object just like any other value. It can be passed to a
-function as an argument and returned from one as a result. That single fact makes
-everything in this lab possible: a decorator is just a function that *takes a
-function and returns a new function*.
+In Python, `def` creates a function just like `x = 5` creates a number.
+That means you can:
 
-### The `@` syntax is sugar
+- Pass a function to another function (like an argument)
+- Return a function from another function (like a result)
 
-Writing:
+This is the key fact that makes decorators possible. A decorator is just a
+function that takes a function and returns a new function.
+
+### The @ syntax is just shorthand
+
+This code:
 
 ```python
 @timer
 def find_primes(limit): ...
 ```
 
-is exactly equivalent to running `find_primes = timer(find_primes)` after the
-`def`. The name `find_primes` no longer points at your original function — it
-points at the `wrapper` that `timer` returned. Every call to `find_primes(...)`
-now goes through that wrapper.
+does exactly the same thing as:
 
-### Closures: the wrapper's memory
+```python
+def find_primes(limit): ...
+find_primes = timer(find_primes)
+```
 
-`wrapper` is nested inside `timer`, so it can reference `func` — the variable
-from the *enclosing* function's scope. When `timer` returns, its frame would
-normally be garbage-collected, but Python keeps it alive because `wrapper` still
-references it. This captured state is a **closure**. Each decorator type uses it
-to remember something across calls: the original function (`@timer`), the
-required role (`@authenticate`), the retry budget (`@retry`), or the whole cache
-dict (`@cache`).
+The `@` just saves you a line. After either one, the name `find_primes` points
+to the new wrapper function, not the original. Every call to `find_primes()`
+now runs through that wrapper.
 
-### `*args, **kwargs`: forward everything
+### Closures: the wrapper remembers
 
-A wrapper must work for *any* function signature. `*args` collects all positional
-arguments into a tuple; `**kwargs` collects all keyword arguments into a dict.
-`wrapper(*args, **kwargs)` forwards them verbatim to the original function, so the
-decorator never needs to know what arguments the wrapped function takes.
+Imagine you have a function inside a function:
 
-### `functools.wraps`: don't break introspection
+```python
+def outer(x):
+    def inner():
+        print(x)  # inner can see x from outer
+    return inner
+```
 
-The warm-up shows the naive wrapper's flaw: `greet.__name__` becomes `wrapper`.
-Tools and debugging rely on a function's `__name__` and `__doc__`. The
-`@functools.wraps(func)` decorator inside a wrapper copies those attributes from
-the original function onto the wrapper, so `find_primes.__name__` stays
-`find_primes`.
+When `inner` is returned and `outer` finishes, Python doesn't throw away the
+`x` variable. It keeps it alive because `inner` still needs it. This is called
+a **closure** — the wrapper function "closes over" a variable from its parent.
 
-### Decorator factories: decorators with arguments
+Decorators use closures to remember things:
 
-`@timer` takes the function directly, but `@authenticate(role="admin")` and
-`@retry(max_attempts=3)` take an argument first. These are **decorator
-factories**: calling `authenticate(role)` returns the actual decorator, which
-then wraps the function. Three levels nest: `authenticate` (holds the role) →
-`decorator` (holds the function) → `wrapper` (holds the call state). Each level
-has its own closure scope.
+- `@timer` remembers the original function
+- `@authenticate` remembers the required role
+- `@retry` remembers the attempt budget
+- `@cache` remembers the entire cache dict
 
-### Aspect-oriented programming
+### `*args, **kwargs`: forward any arguments
 
-The core function owns only its business logic; timing, authorization, retries,
-and caching are **cross-cutting concerns** that would otherwise be copy-pasted
-into every function. A decorator attaches each concern around the core without
-modifying it — you can add, remove, or reorder concerns independently. That
-separation is the takeaway of this lab.
+A decorator must work on any function, whether it takes 0 arguments or 10.
+
+`*args` collects all positional arguments into a tuple. `**kwargs` collects
+all keyword arguments into a dict.
+
+So when you write:
+
+```python
+def wrapper(*args, **kwargs):
+    result = func(*args, **kwargs)
+```
+
+the wrapper can pass along any arguments to `func`, no matter what they are.
+The decorator never needs to know the signature.
+
+### `functools.wraps`: preserve the name
+
+Without `@functools.wraps(func)`, a wrapped function loses its name:
+
+```python
+def timer(func):
+    def wrapper(*args, **kwargs):
+        # ...
+        return result
+    return wrapper
+
+@timer
+def find_primes(limit): ...
+
+print(find_primes.__name__)  # prints "wrapper" — oops!
+```
+
+That breaks debugging and documentation tools. `@functools.wraps(func)` copies
+the original name and docstring onto the wrapper:
+
+```python
+def timer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        # ...
+        return result
+    return wrapper
+
+print(find_primes.__name__)  # now prints "find_primes" — correct!
+```
+
+### Decorator factories: adding arguments
+
+`@timer` takes the function directly, but what if you want to pass arguments
+like `@retry(max_attempts=3)`?
+
+A **decorator factory** is a function that returns a decorator.
+
+It works in three steps:
+
+1. `@retry(max_attempts=3)` calls the `retry` function with `max_attempts=3`
+2. `retry` returns a `decorator` function
+3. `decorator` wraps your actual function and returns the `wrapper`
+
+So there are three levels of nesting:
+
+- `retry` level: holds the `max_attempts` value
+- `decorator` level: holds the original function
+- `wrapper` level: runs on each call
+
+Each level has its own closure.
+
+### Separation of concerns
+
+Without decorators, every function would need the same boilerplate:
+
+- Log the start and end time
+- Check permissions
+- Retry on failure
+- Check the cache first
+
+That's a lot of copy-paste. Decorators separate these concerns from the core
+logic.
+
+The core function does one thing: compute the answer. Decorators do everything
+else: time it, secure it, retry it, cache it. You can add, remove, or reorder
+decorators without touching the function itself.
 
 ### How a decorated call flows
 
 ```mermaid
 %%{init: {"theme": "base", "themeVariables": {"nodeTextColor": "#111111", "primaryTextColor": "#111111", "textColor": "#111111", "lineColor": "#334155", "edgeLabelBackground": "#ffffff"}}}%%
 graph LR
-    CALL["call f(10)"] --> BEFORE["wrapper(*args, **kwargs)<br/>before: look in cache /<br/>check role / record start time"]
-    BEFORE --> CORE["original function f<br/>core logic, unchanged"]
-    CORE --> AFTER["wrapper resumes<br/>after: time the run /<br/>catch errors / store result"]
-    AFTER --> RETURN["return result to caller"]
-    style CALL fill:#e1f5fe,color:#01579b
-    style BEFORE fill:#fff9c4,color:#5d4037
-    style CORE fill:#c8e6c9,color:#1b5e20
-    style AFTER fill:#fff9c4,color:#5d4037
-    style RETURN fill:#e1f5fe,color:#01579b
+    A["call f(10)"] --> B["wrapper(*args, **kwargs)<br/>before: look in cache /<br/>check role / record start time"]
+    B --> C["original function f<br/>core logic, unchanged"]
+    C --> D["wrapper resumes<br/>after: time the run /<br/>catch errors / store result"]
+    D --> E["return result to caller"]
+    style A fill:#e1f5fe,color:#01579b
+    style B fill:#fff9c4,color:#5d4037
+    style C fill:#c8e6c9,color:#1b5e20
+    style D fill:#fff9c4,color:#5d4037
+    style E fill:#e1f5fe,color:#01579b
 ```
 
 The wrapper is the only code that sees both sides of the call. Whatever happens
@@ -216,12 +245,11 @@ Python 3.9+. From the lab folder:
 python --version                    # must be 3.9+
 python -m venv .venv                # optional but recommended
 .venv\Scripts\activate              # Windows (macOS/Linux: source .venv/bin/activate)
-pip install tabulate==0.10.0 notebook
+pip install notebook
 jupyter notebook lab-metaprogramming-toolkit.ipynb
 ```
 
-The notebook's **first cell** also runs `!pip install tabulate==0.10.0`, so any
-existing Jupyter/VS Code environment works — run the first cell and you're set.
+The lab uses only the Python standard library — no extra packages to install.
 
 ---
 
@@ -230,17 +258,14 @@ existing Jupyter/VS Code environment works — run the first cell and you're set
 Work through the notebook cell by cell. Each step is explained before the code
 it runs.
 
-### Step 1 — Warm up: functions are objects
+### Step 0 — Warm up: functions are objects
 
-Before decorators, see the raw mechanism. `shout` takes a function, builds a
-`wrapper` that calls it and transforms the result, and returns the wrapper. We
-then rebind the name `greet` to that wrapper — the same thing `@` does for you,
-minus the syntax. The second print reveals the cost: `greet.__name__` is now
-`wrapper`, because the original function's identity was not carried over.
+A quick warm-up: `shout` takes a function and returns a new one that uppercases
+its result. The name `greet` is rebound to the wrapper. Notice
+`greet.__name__` is now `wrapper` — that is the problem `functools.wraps`
+solves later.
 
 ```python
-# Functions are objects, so they can be passed in and returned. Here we
-# hand greet to shout, get back a wrapper, and rebind the name greet to it.
 def shout(func):
     def wrapper(name):
         return func(name).upper() + "!"
@@ -254,21 +279,9 @@ print(greet("team"))
 print("function name is now:", greet.__name__)
 ```
 
-This prints `HELLO TEAM!` and `function name is now: wrapper`.
+Output: `HELLO TEAM!` then `function name is now: wrapper`.
 
-### Step 2 — The imports
-
-Everything except `tabulate` is built into Python: `functools` for
-`functools.wraps`, `time` for timing, and `random` for the flaky-call
-simulation.
-
-```python
-import functools
-import random
-import time
-```
-
-### Step 3 — Part 1: the `@timer` decorator
+### Step 1 — Part 1: the `@timer` decorator
 
 The pattern every decorator in this lab follows: `timer` takes `func`, defines a
 `wrapper`, and returns it. Inside the wrapper, `time.perf_counter()` is read
@@ -278,9 +291,15 @@ docstring onto the wrapper so introspection keeps working. `@timer` above
 `find_primes` is shorthand for `find_primes = timer(find_primes)`.
 
 ```python
-# @timer measures a function's run time and prints it, then returns the
-# result untouched. @functools.wraps copies the original name/docstring
-# onto the wrapper so introspection keeps working.
+# functools.wraps copies the original name/docstring onto the wrapper
+# so introspection keeps working. time.perf_counter gives us high-precision
+# timing.
+import functools
+import time
+
+# --- @timer decorator ---
+# timer takes a function, defines a wrapper that records start/end time,
+# prints the elapsed seconds, and returns the original result.
 def timer(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -291,6 +310,8 @@ def timer(func):
         return result
     return wrapper
 
+# Apply @timer to find_primes - this is shorthand for
+# find_primes = timer(find_primes), so the name now points at the wrapper.
 @timer
 def find_primes(limit):
     return [n for n in range(2, limit + 1)
@@ -303,7 +324,7 @@ print("primes found:", len(primes))
 The output is the elapsed time (the number varies per machine) and
 `primes found: 303`.
 
-### Step 4 — Part 2: the `@authenticate` decorator factory
+### Step 2 — Part 2: the `@authenticate` decorator factory
 
 `@authenticate(role="admin")` needs an argument, so `authenticate` is a factory:
 calling it with the role returns the real `decorator`, which in turn returns the
@@ -313,9 +334,12 @@ runs the delete as an admin, then flips `current_user["role"]` to `"viewer"` and
 shows the same call now denied — with the core `delete_user` unchanged.
 
 ```python
-# @authenticate(role=...) needs an argument, so authenticate is a factory:
-# calling it returns the real decorator. The wrapper reads a shared
-# current_user dict and raises PermissionError if the role does not match.
+# --- @authenticate decorator factory ---
+# authenticate(role) returns the real decorator, which wraps the function.
+# The wrapper reads a shared current_user dict and raises PermissionError
+# if the role does not match. Three levels: authenticate holds the role,
+# decorator holds the function, wrapper holds the call state.
+# Simulated global state — in production this would come from a session or DB.
 current_user = {"name": "alice", "role": "admin"}
 
 def authenticate(role):
@@ -329,6 +353,8 @@ def authenticate(role):
         return wrapper
     return decorator
 
+# Demo: alice is admin, so delete_user(7) works. Then we flip the role
+# to viewer and the same call gets denied - core function never changed.
 @authenticate(role="admin")
 def delete_user(user_id):
     return f"Deleted user {user_id}"
@@ -344,7 +370,7 @@ except PermissionError as error:
 
 The output shows `Deleted user 7` then `Denied: alice needs role 'admin'`.
 
-### Step 5 — Part 3: the `@retry` decorator
+### Step 3 — Part 3: the `@retry` decorator
 
 `retry(max_attempts=3)` is another factory. The wrapper loops through the
 attempt budget; each `ConnectionError` is caught, reported, and the loop moves
@@ -354,9 +380,11 @@ re-raised as a `RuntimeError` *after* the loop. The demo drives a deterministic
 the counter reset to five — three failures then give-up.
 
 ```python
-# @retry(max_attempts=...) retries the wrapped call when it raises
-# ConnectionError (a flaky network in real life). If every attempt fails,
-# the last error is re-raised as a RuntimeError after the loop.
+# --- @retry decorator factory ---
+# retry(max_attempts) returns a decorator. The wrapper loops through the
+# attempt budget, catching ConnectionError on each failure. On success
+# it returns immediately. If every attempt fails, the last error is
+# re-raised as RuntimeError after the loop is exhausted.
 def retry(max_attempts=3):
     def decorator(func):
         @functools.wraps(func)
@@ -372,6 +400,8 @@ def retry(max_attempts=3):
         return wrapper
     return decorator
 
+# Demo: flaky has 2 failures left, so @retry catches both then succeeds.
+# Simulated failure counter — in production this would be a real network call.
 flaky = {"failures_left": 2}
 
 @retry(max_attempts=3)
@@ -383,7 +413,8 @@ def fetch_orders():
 
 print(fetch_orders())
 
-# Give up path: more failures than attempts.
+# Give up path: more failures than attempts, so the loop exhausts
+# and RuntimeError is raised.
 flaky["failures_left"] = 5
 try:
     fetch_orders()
@@ -395,7 +426,7 @@ The output is two `Attempt N failed: gateway timed out` lines followed by
 `['order A', 'order B']`, then three attempt lines and
 `giving up after 3 attempts: gateway timed out`.
 
-### Step 6 — Part 4: the `@cache` decorator
+### Step 4 — Part 4: the `@cache` decorator
 
 `cache` creates the `store` dict in its own scope, so every decorated function
 gets its own private cache via the closure. `key = args` is a tuple of the
@@ -405,9 +436,11 @@ function is never called; on a miss it is computed and stored. The demo calls
 silent and instant.
 
 ```python
-# @cache memoizes results. store lives in the closure, one dict per
-# decorated function. key = args (a tuple, so it is hashable); on a hit
-# the function body is skipped entirely.
+# --- @cache decorator ---
+# cache creates a store dict in its own scope, so each decorated function
+# gets its own private cache. key = args (a tuple, so it is hashable).
+# On a hit the wrapped function is never called; on a miss it is computed
+# and stored. Exercise 5 extends this to include keyword arguments.
 def cache(func):
     store = {}
 
@@ -420,6 +453,9 @@ def cache(func):
         return store[key]
     return wrapper
 
+# Demo: expensive(10) prints "computing" on the first call,
+# then returns instantly on the second call (cache hit).
+# expensive(12) computes again because the key differs.
 @cache
 def expensive(n):
     time.sleep(0.02)  # pretend this is a slow computation
@@ -432,25 +468,6 @@ print(expensive(12))
 
 The output prints `computing expensive ...` once, then `100`, `100`, then
 `computing expensive ...` again and `144` for the new argument.
-
-### Step 7 — The toolkit ledger
-
-Finally, collect each decorator, the concern it handles, and what the demo proved
-into a `tabulate` table. One glance shows the whole point: four administrative
-concerns wrapped around untouched core functions.
-
-```python
-from tabulate import tabulate
-
-ledger = [
-    ["@timer", "performance tracking", "prints elapsed seconds"],
-    ["@authenticate", "access control", "admin allowed, viewer denied"],
-    ["@retry", "flaky-call resilience", "2 retries then success"],
-    ["@cache", "avoid re-computation", "computed once, reused twice"],
-]
-
-print(tabulate(ledger, headers=["Decorator", "Concern", "Demo outcome"], tablefmt="grid"))
-```
 
 ---
 

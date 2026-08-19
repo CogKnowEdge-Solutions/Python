@@ -110,16 +110,6 @@ class TestCache:
         assert executed_nb.ref("expensive.__name__") == "expensive"
 
 
-class TestLedger:
-    def test_ledger_lists_all_decorators(self, executed_nb):
-        text = output_of(executed_nb, "tabulate(ledger")
-        assert "@timer" in text
-        assert "@authenticate" in text
-        assert "@retry" in text
-        assert "@cache" in text
-        assert "computed once, reused twice" in text
-
-
 class TestAssignmentExercises:
     def test_optional_exercise_kwargs_cache_key(self):
         import functools

@@ -13,9 +13,16 @@ kernel and validates the real output.
 | [Lab 2](Lab2) | The Safe Resource Vault — Context Managers | Beginner | ~25 min |
 | [Lab 3](Lab3) | The Memory-Efficient Data Pipeline — Iterators and Generators | Intermediate | ~40 min |
 | [Lab 4](Lab4) | The Metaprogramming Toolkit — Decorators, Closures and Caching | Intermediate | ~40 min |
+| [Lab 5](Lab5) | The Async API Fetcher — Concurrency in Action with `asyncio` | Intermediate | ~40 min |
+| [Lab 6](Lab6) | Threading vs Multiprocessing vs asyncio — Which Concurrency Tool When? | Advanced | ~45 min |
+| [Lab 7](Lab7) | The Ultimate Async Data Stream (Capstone) | Advanced | ~50 min |
 
 Each lab folder ships four files: the Jupyter notebook, the companion guide (`.md`),
-the assignment sheet with answer key, and the `pytest` suite that validates the lab.
+the assignment sheet with an answer key, and the `pytest` suite that validates the
+lab. Lab 6 additionally ships a `workloads.py` companion module so its worker
+*processes* can import the workloads by name. Each lab also includes an Excel
+file (`lab<N>_test_results.xlsx`) with per-test pass/fail results, durations, and
+failure messages.
 
 ### Lab 1 — Functional Data Wrangling with Lambda Functions
 
@@ -67,6 +74,51 @@ toolkit every messy production codebase needs.
   small in-code demos and summarized in a final `tabulate` ledger.
 - Data: none — decorates four small in-code functions, no downloads, no API keys.
 
+### Lab 5 — The Async API Fetcher — Concurrency in Action with `asyncio`
+
+Fetch weather for 100 cities three ways and measure the difference: a blocking
+synchronous loop, a fully concurrent `asyncio.gather` run, and a rate-limited
+`Semaphore(5)` version.
+
+- Practice: coroutines and `await`, the event loop, `aiohttp.ClientSession`,
+  `asyncio.gather`, `asyncio.Semaphore`, timing with `perf_counter`.
+- Build: a local mock weather API, three fetchers for the same 100 cities, and a
+  `tabulate` ledger — the ledger's speed-up column (roughly 20x, capped at 5x)
+  makes blocking, overlapping, and rate-limited I/O visible in one table.
+- Data: none — a deterministic mock API on `localhost` (50 ms simulated latency),
+  no downloads, no API keys, works offline.
+
+### Lab 6 — Threading vs Multiprocessing vs asyncio
+
+Run the same CPU-bound task (blurring 100 synthetic images in pure Python) and
+the same I/O-bound task (100 fake 50 ms requests) under four execution
+strategies — sequential, threads, asyncio, processes — and watch the two
+ledgers *invert*.
+
+- Practice: `ThreadPoolExecutor`, `ProcessPoolExecutor`, asyncio, timing with
+  `perf_counter`, and how the GIL dictates which tool fits which workload.
+- Build: two `tabulate` ledgers proving threads and asyncio don't speed up CPU
+  work, processes win it, and asyncio crushes the I/O task ~100×.
+- Data: none — a pure-Python box blur on synthetic images in `workloads.py`,
+  fully offline, no downloads, no API keys.
+
+### Lab 7 — The Ultimate Async Data Stream (Capstone)
+
+The capstone: one production-shaped architecture that wires together every lab
+in the catalog — a slow paginated API streamed into local storage piece by
+piece.
+
+- Practice: async generators (`async def ... yield`), `async for`, an
+  async-aware `@timer`, lambda + `filter`/`map` cleaning pipelines, and async
+  context managers (`async with`).
+- Build: an ingestion engine that lazily paginates a slow source (a
+  lazy-proof timing shows two pages costing ~0.12 s of a ~0.5 s stream), cleans
+  each page on arrival, writes it to a JSON-lines store through an `async with`
+  block, and reconciles a fetched-vs-kept-vs-stored ledger. The Optional
+  Exercise makes the source flaky and proves retry plus the crash guarantee.
+- Data: none — a deterministic simulated paginated API (10 pages × 10 events),
+  fully offline, no downloads, no API keys.
+
 ## Repository Structure
 
 ```
@@ -75,7 +127,7 @@ Advanced_Python/
 ├── AGENTS.md         # operating procedure for building and validating labs
 ├── GUIDELINES.md     # writing guide for lab notebooks and guides
 ├── TEST.md           # the testing framework used to validate each lab
-├── Lab1/ … Lab4/     # one folder per lab (notebook, guide, assignment, tests)
+├── Lab1/ … Lab7/     # one folder per lab (notebook, guide, assignment, tests, results)
 ├── README.md         # this file
 └── LICENSE           # MIT
 ```
@@ -97,6 +149,21 @@ pytest test_<lab>.py -q
 
 The notebooks also install their own pinned dependency from the first cell, so opening
 them in any existing Jupyter environment works too.
+
+## Test Results
+
+Each lab includes an Excel workbook with detailed test results. All 135 tests
+pass across all 7 labs.
+
+| Lab | Tests | Status |
+|-----|-------|--------|
+| Lab 1 | 23/23 | PASS |
+| Lab 2 | 19/19 | PASS |
+| Lab 3 | 19/19 | PASS |
+| Lab 4 | 20/20 | PASS |
+| Lab 5 | 17/17 | PASS |
+| Lab 6 | 14/14 | PASS |
+| Lab 7 | 23/23 | PASS |
 
 ## License
 
