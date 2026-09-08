@@ -1,0 +1,3 @@
+Widget,3,9.99
+Gadget,1,14.50
+Shirt,2,25.00

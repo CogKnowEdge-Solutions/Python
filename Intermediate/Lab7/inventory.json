@@ -1,0 +1,17 @@
+[
+  {
+    "product": "Widget",
+    "qty": 3,
+    "price": 9.99
+  },
+  {
+    "product": "Gadget",
+    "qty": 1,
+    "price": 14.5
+  },
+  {
+    "product": "Shirt",
+    "qty": 2,
+    "price": 25.0
+  }
+]
