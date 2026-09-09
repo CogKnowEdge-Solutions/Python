@@ -25,6 +25,7 @@ build/
 # Lab runtime artifacts
 vault_notes.txt
 events.jsonl
+test-results/
 
 # Node
 node_modules/
