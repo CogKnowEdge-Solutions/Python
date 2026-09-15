@@ -16,25 +16,19 @@ Almost nothing you type into a program arrives tidy. A user's name, a search que
 
 ## 3. Input Data
 
-This lab takes no specific external input — the text values are defined inline in the code.
+None — all text values are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a small sequence of steps, done with plain Python:
-
-1. **Create** a string and inspect it with `len()` and indexing.
-2. **Slice** it to extract substrings.
-3. **Clean** it with `strip()`, `lower()`, and `replace()`; locate text with `find()`.
-4. **Split** it into words and **join** them back into one string.
-5. **Format** the results into readable output with f-strings.
+None — string creation, slicing, cleaning, splitting, joining, and formatting.
 
 ---
 
 ## 5. Output
 
-This lab produces no special output beyond the printed results of each code snippet as you run it.
+Printed results below each code cell.
 
 ---
 

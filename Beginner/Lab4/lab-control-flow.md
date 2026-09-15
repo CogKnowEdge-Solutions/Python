@@ -16,26 +16,19 @@ The real power of a program comes from making decisions and repeating work. A gr
 
 ## 3. Input Data
 
-This lab takes no specific external input — the sample score lists are defined inline in the code.
+None — all sample score lists are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a short sequence of steps, done with plain Python:
-
-1. **Branch** with `if/elif/else` to map a score to a letter grade.
-2. **Iterate** with a `for` loop to grade every score.
-3. **Pair** values with `enumerate()` and `zip()` to keep index and parallel data aligned.
-4. **Control** the loop with `continue` and `break`.
-5. **Repeat** with a `while` loop when the iteration count is unknown.
-6. **Assemble** a final filtered report.
+None — branching, looping, and control flow with `if/elif/else`, `for`, `while`, `break`, and `continue`.
 
 ---
 
 ## 5. Output
 
-This lab produces no special output beyond the printed results of each code snippet as you run it.
+Printed results below each code cell.
 
 ---
 

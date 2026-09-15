@@ -16,25 +16,19 @@ Every Python program — from a simple calculator to a machine-learning pipeline
 
 ## 3. Input Data
 
-This lab takes no specific external input — all sample values are defined inline in the code.
+None — all values are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a small sequence of steps, done with plain Python:
-
-1. **Store** your personal data in variables.
-2. **Inspect** each variable with `type()` to see what kind of data it holds.
-3. **Calculate** the balance after a purchase using the subtraction operator.
-4. **Compare** values with comparison operators to check if a purchase fits.
-5. **Build** a short report string that combines text and numbers.
+None — straightforward variable assignment, inspection, arithmetic, and comparison.
 
 ---
 
 ## 5. Output
 
-This lab produces no special output beyond the printed results of each code snippet as you run it.
+Printed results below each code cell.
 
 ---
 

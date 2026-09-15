@@ -16,54 +16,19 @@ This is the **capstone** mini project for the Basic level. It ties together ever
 
 ## 3. Input Data
 
-The input is a small **dictionary of student records** you define in code:
-
-- Each key is a student name (`"Ana"`, `"Ben"`, `"Clara"`).
-- Each value is a nested dict with a course name, a list of scores, and an attendance ratio:
-  - `"Ana"`: `{"course": "Data 101", "scores": [92, 88, 95], "attendance": 0.90}`
-  - `"Ben"`: `{"course": "Data 101", "scores": [67, 60, 72], "attendance": 0.85}`
-  - `"Clara"`: `{"course": "Stats 210", "scores": [55, 48, 61], "attendance": 0.78}`
-
-No external files or databases are needed.
+None — all student records are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a short pipeline:
-
-1. **Define** the student data as a dict of dicts.
-2. **Grade** — map each student's numeric average to a letter grade with `if/elif/else`.
-3. **Summarize** — compute each average and grade and store them in a second dict.
-4. **Format** — a function turns one student's record into a printable report string.
-5. **Generate** — loop over the gradebook and print every report.
+None — data definition, grading, averaging, and report generation.
 
 ---
 
 ## 5. Output
 
-When the lab runs successfully, you will see output like this:
-
-```
-Students: ['Ana', 'Ben', 'Clara']
-{'Ana': {'average': 91.66666666666667, 'grade': 'A'}, 'Ben': {'average': 66.33333333333333, 'grade': 'D'}, 'Clara': {'average': 54.666666666666664, 'grade': 'F'}}
-Student: Ana
-Course:  Data 101
-Average: 91.7  Grade: A
-Attendance: 90%
-
-Student: Ben
-Course:  Data 101
-Average: 66.3  Grade: D
-Attendance: 85%
-
-Student: Clara
-Course:  Stats 210
-Average: 54.7  Grade: F
-Attendance: 78%
-```
-
-The first two `print()` cells show the raw data and computed summaries. The final loop then prints one clean, labeled report per student, separated by a blank line. (Averages: `Ana` = `(92+88+95)/3` = `91.7` → A; `Ben` = `(67+60+72)/3` = `66.3` → D; `Clara` = `(55+48+61)/3` = `54.7` → F.)
+Printed student reports below each code cell.
 
 ---
 

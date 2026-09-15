@@ -16,25 +16,19 @@ As your programs grow, the pattern of "loop over a collection, calculate somethi
 
 ## 3. Input Data
 
-This lab takes no specific external input — all sample collections are defined inline in the code.
+None — all sample collections are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a short sequence of steps:
-
-1. **Transform** a list with a basic list comprehension.
-2. **Filter** with `if` and choose values with a conditional expression.
-3. **Build** a dictionary comprehension, typically with `zip()`.
-4. **Build** a set comprehension to collect unique values.
-5. **Combine** structures and **contrast** a comprehension with its loop equivalent.
+None — list, dictionary, and set comprehensions with filtering and conditional expressions.
 
 ---
 
 ## 5. Output
 
-This lab produces no special output beyond the printed results of each code snippet as you run it.
+Printed results below each code cell.
 
 ---
 

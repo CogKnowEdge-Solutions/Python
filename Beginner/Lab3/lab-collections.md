@@ -16,24 +16,19 @@ Real programs rarely store a single value — they store *many*, and the shape o
 
 ## 3. Input Data
 
-This lab takes no specific external input — all sample collections are defined inline in the code.
+None — all sample collections are defined inline in code.
 
 ---
 
 ## 4. Processing
 
-The processing is a short sequence of steps, done with plain Python:
-
-1. **Build** each collection with literal syntax and modify it in place.
-2. **Access** values using each structure's native operation (indexing, key lookup, unpacking, `in`).
-3. **Iterate** over the dictionary to compute a class average.
-4. **Compare** the structures side by side in a cheat-sheet dict.
+None — collection creation, access, iteration, and comparison.
 
 ---
 
 ## 5. Output
 
-This lab produces no special output beyond the printed results of each code snippet as you run it.
+Printed results below each code cell.
 
 ---
 
