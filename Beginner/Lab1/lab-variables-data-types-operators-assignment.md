@@ -14,22 +14,24 @@ Reference sections: [Section 7 (Underlying Concepts)](lab-variables-data-types-o
 
 **4.** What is the difference between `=` and `==`?
 
+**5.** What is **type casting**? Name the function you would use to (a) turn the number `28` into text, and (b) turn the text `"28"` back into a number. Does casting change the original value?
+
 ## Short Code Tasks
 
-**5.** Write code that stores your favorite number in a variable named `favorite_number`, then prints its type using `type()`.
+**6.** Write code that stores your favorite number in a variable named `favorite_number`, then prints its type using `type()`.
 
-**6.** Write code that computes `20 / 3` and stores it in `result`, then prints `result`. What data type is `result`? (Hint: division always produces one particular type in Python.)
+**7.** Write code that computes `20 / 3` and stores it in `result`, then prints `result`. What data type is `result`? (Hint: division always produces one particular type in Python.)
 
-**7.** Write a single line using a **comparison operator** that checks whether the number `100` is less than `50`. What does that line evaluate to?
+**8.** Write a single line using a **comparison operator** that checks whether the number `100` is less than `50`. What does that line evaluate to?
 
 ## Applied Tasks
 
-**8.** Using the budget example from the lab, write code that:
+**9.** Using the budget example from the lab, write code that:
 - Stores a balance of `200.75` and a purchase price of `199.99`.
 - Computes the remaining balance after the purchase.
 - Prints `"Can afford"` if the balance is greater than or equal to the price, and `"Cannot afford"` otherwise.
 
-**9.** Explain why the lab converts numbers to strings with `str()` before joining them into a message with `+`. What would happen if you wrote `"I am " + 28 + " years old"` without `str()`?
+**10.** Explain why the lab converts numbers to strings with `str()` before joining them into a message with `+`. What would happen if you wrote `"I am " + 28 + " years old"` without `str()`? Then answer: what does `int(3.9)` return, and what does `int("3.9")` do?
 
 ---
 
@@ -47,27 +49,33 @@ Reference sections: [Section 7 (Underlying Concepts)](lab-variables-data-types-o
 
 **4.** `=` is the assignment operator — it stores a value into a variable (`x = 5`). `==` is the equality comparison operator — it compares two values and returns a `bool` (`x == 5` returns `True`).
 
-**5.**
+**5.** Type casting is asking Python to treat a value as a different type, by calling the type you want.
+- (a) `str(28)` returns the text `"28"`.
+- (b) `int("28")` returns the number `28`.
+
+Casting does **not** change the original value. It returns a brand-new value of the new type, so both can exist at once — `student_age` stays an `int` while `age_as_text` is a `str`.
+
+**6.**
 ```python
 favorite_number = 7
 print(type(favorite_number))
 ```
 This prints `<class 'int'>`.
 
-**6.**
+**7.**
 ```python
 result = 20 / 3
 print(result)
 ```
 Division (`/`) always produces a `float` in Python, so `result` is a `float`.
 
-**7.**
+**8.**
 ```python
 100 < 50
 ```
 This evaluates to `False`, because comparison operators always return a `bool`.
 
-**8.**
+**9.**
 ```python
 balance = 200.75
 price = 199.99
@@ -79,4 +87,8 @@ else:
 ```
 This prints `Can afford`, since `200.75 >= 199.99` is `True`.
 
-**9.** In Python you can only join strings with `+`. Numbers must be converted to strings first with `str()`. Without `str()`, writing `"I am " + 28` raises a `TypeError`, because you cannot add a string and an integer — the `+` operator does not know how to combine those two different types.
+**10.** In Python you can only join strings with `+`. Numbers must be converted to strings first with `str()`. Without `str()`, writing `"I am " + 28` raises a `TypeError`, because you cannot add a string and an integer — the `+` operator does not know how to combine those two different types.
+
+On the two casts:
+- `int(3.9)` returns `3`. Casting a number to `int` **drops** the decimal part; it does not round, so use `round(3.9)` if you want `4`.
+- `int("3.9")` raises a `ValueError`. Casting text is stricter than casting a number, because `"3.9"` is not a whole number. If you need the value anyway, cast twice: `int(float("3.9"))` returns `3`.

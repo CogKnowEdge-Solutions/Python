@@ -36,6 +36,7 @@ standalone `pytest` suite that validates the lab's real output.
 │   ├── Lab5/  lab-async-api-fetcher
 │   ├── Lab6/  lab-concurrency-models
 │   └── Lab7/  lab-ultimate-async-data-stream
+├── Capstone/                   # Course-wide capstone project (solve-it-yourself)
 ├── scripts/                    # Tooling (pytest-to-xlsx converter)
 ├── test-results/               # JUnit XML + .xlsx reports per lab
 ├── AGENTS.md                   # Instructions for AI coding agents
@@ -111,6 +112,15 @@ Each Advanced lab ships a `lab<N>_test_results.xlsx` with per-test pass/fail
 results, durations, and failure messages. Lab 6 additionally ships a
 `workloads.py` companion module so its worker *processes* can import the
 workloads by name.
+
+## Capstone Project
+
+After finishing all three sections, the course-wide capstone lives in
+[`Capstone/`](Capstone/) — a **solve-it-yourself** real-time data analytics
+dashboard that integrates every lab's topics. Read
+[`CAPSTONE_PROJECT.md`](Capstone/CAPSTONE_PROJECT.md) (the full spec), then
+run [`CAPSTONE_SETUP.ipynb`](Capstone/CAPSTONE_SETUP.ipynb) to bootstrap the
+project's data files and templates.
 
 ## Getting Started
 

@@ -5,6 +5,7 @@ Covers:
 - Arithmetic operators
 - Comparison operators
 - Type conversion
+- Type casting between str, int, float and bool
 - Operator precedence
 """
 import pytest
@@ -127,6 +128,92 @@ class TestTypeConversion:
     def test_boolean_to_int(self):
         assert int(True) == 1
         assert int(False) == 0
+
+
+class TestTypeCasting:
+    """Test casting between the core types (Section 7, "Type Casting")."""
+
+    def test_number_to_text(self):
+        result = str(28)
+        assert result == "28"
+        assert isinstance(result, str)
+
+    def test_text_to_number(self):
+        result = int("28")
+        assert result == 28
+        assert isinstance(result, int)
+
+    def test_text_to_float(self):
+        result = float("19.99")
+        assert result == 19.99
+        assert isinstance(result, float)
+
+    def test_float_to_int_truncates_not_rounds(self):
+        # int() drops the decimal part; it does not round to the nearest int.
+        assert int(3.9) == 3
+        assert int(3.1) == 3
+        assert round(3.9) == 4
+
+    def test_int_to_float(self):
+        result = float(10)
+        assert result == 10.0
+        assert isinstance(result, float)
+
+    def test_text_decimal_to_int_raises(self):
+        # Casting text is stricter than casting a number: "3.9" is not a whole number.
+        with pytest.raises(ValueError):
+            int("3.9")
+
+    def test_double_cast_text_decimal_to_int(self):
+        assert int(float("3.9")) == 3
+
+    def test_casting_returns_new_value(self):
+        age = 28
+        age_as_text = str(age)
+        assert age == 28
+        assert isinstance(age, int)
+        assert age_as_text == "28"
+        assert isinstance(age_as_text, str)
+
+    def test_casting_does_not_modify_original(self):
+        price_text = "450"
+        price = int(price_text)
+        assert price_text == "450"
+        assert price == 450
+        assert price_text + price_text == "450450"   # text is still text
+
+
+    def test_bool_of_empty_and_zero(self):
+        assert bool(0) is False
+        assert bool(0.0) is False
+        assert bool("") is False
+
+    def test_bool_of_non_empty(self):
+        assert bool("0") is True   # a non-empty string, even "0", is True
+        assert bool("hello") is True
+        assert bool([1]) is True
+
+    def test_mixed_addition_raises(self):
+        # The reason casting is needed: + refuses to mix str with int.
+        with pytest.raises(TypeError):
+            "I am " + 28
+
+    def test_casting_fixes_mixed_addition(self):
+        assert "I am " + str(28) + " years old" == "I am 28 years old"
+
+    def test_adding_two_texts_joins_them(self):
+        assert "2" + "3" == "23"
+
+    def test_adding_two_numbers_adds_them(self):
+        assert 2 + 3 == 5
+
+    def test_input_always_returns_text(self):
+        # Documented behaviour the optional exercise relies on: input() is a str,
+        # so it must be cast before arithmetic.
+        typed = "450"   # what input() would return
+        assert isinstance(typed, str)
+        assert typed + typed == "450450"           # joining, not adding
+        assert int(typed) + int(typed) == 900      # cast first, then add
 
 
 class TestVariableUpdates:

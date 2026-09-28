@@ -16,7 +16,7 @@ Reference sections: [Section 7 (Underlying Concepts)](lab-collections.md) and [S
 
 ## Short Code Tasks
 
-**5.** Write code that creates a list of three colors, appends a fourth, and prints the list.
+**5.** Write code that creates a list of three colors, appends a fourth, and prints the list. Then use slicing to print only the first two items (`list[:2]`) and only the last item (`list[-1:]`), state which value is the `start` and which is the `end` in each slice, and say what `list[0:99]` and `list[99]` would each do.
 
 **6.** Write code that builds a one-entry dict mapping `"course"` to `"Data Science"`, adds a key `"credits"` with value `3`, then prints the value for `"course"`.
 
@@ -49,8 +49,12 @@ Reference sections: [Section 7 (Underlying Concepts)](lab-collections.md) and [S
 colors = ["red", "blue", "green"]
 colors.append("yellow")
 print(colors)
+print(colors[:2])   # start omitted (= 0), end = 2
+print(colors[-1:])  # start = -1, end omitted
+print(colors[0:99]) # end is far past the last item
+# print(colors[99]) # IndexError: list index out of range
 ```
-This prints `['red', 'blue', 'green', 'yellow']`.
+This prints `['red', 'blue', 'green', 'yellow']`, then `['red', 'blue']`, then `['yellow']`, then the full list again. In `colors[:2]` the `end` is `2`, so the item at position 2 (`'green'`) is dropped. In `colors[-1:]` the `start` is `-1` (the last item) and with no `end` it runs to the end, so you get a one-item list rather than a single item — a slice always returns a list. `colors[0:99]` returns the whole list because an oversized `end` means "to the end", whereas `colors[99]` raises `IndexError` since position `99` does not exist.
 
 **6.**
 ```python

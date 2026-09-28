@@ -42,3 +42,7 @@ yarn-error.log*
 # Misc
 tmp/
 *.tmp
+
+# Working snapshots and exported reference material
+backups/
+Claude outputs/

@@ -2,9 +2,9 @@
 
 Covers:
 - Lists: creation, indexing, slicing, methods, nesting
-- Dictionaries: creation, access, update, methods, nesting
-- Sets: creation, operations (union, intersection, difference)
-- Tuples: creation, immutability, packing/unpacking
+- Dictionaries: creation, access, update, merge, views, methods, nesting
+- Sets: creation, operations (union, intersection, difference), membership, add/remove
+- Tuples: creation, immutability, packing/unpacking, slicing, count/index
 """
 import pytest
 
@@ -45,6 +45,23 @@ class TestLists:
         scores = [88, 92, 79]
         scores.remove(92)
         assert 92 not in scores
+
+    def test_pop_by_index(self):
+        roster = ["Ana", "Ben", "Clara"]
+        assert roster.pop(0) == "Ana"
+        assert roster == ["Ben", "Clara"]
+
+    def test_index_and_count(self):
+        scores = [88, 92, 88, 79]
+        assert scores.index(88) == 0
+        assert scores.count(88) == 2
+
+    def test_nested_list_append_row(self):
+        grade_table = [["Ana", 88, 92], ["Ben", 74, 80]]
+        grade_table.append(["Clara", 91, 95])
+        assert len(grade_table) == 3
+        assert grade_table[2][1] == 91
+        assert grade_table[1][-1] == 80
 
     def test_pop(self):
         scores = [88, 92, 79]
@@ -100,6 +117,16 @@ class TestDictionaries:
         person["age"] = 23
         assert person["age"] == 23
 
+    def test_update_method(self):
+        person = {"name": "Ana", "age": 22}
+        person.update({"age": 23, "city": "Pune"})
+        assert person == {"name": "Ana", "age": 23, "city": "Pune"}
+
+    def test_pop_key(self):
+        person = {"name": "Ana", "age": 22}
+        assert person.pop("age") == 22
+        assert "age" not in person
+
     def test_keys_values_items(self):
         person = {"name": "Ana", "age": 22}
         assert "name" in person.keys()
@@ -125,6 +152,28 @@ class TestDictionaries:
         }
         assert students["Ana"]["math"] == 95
         assert students["Ben"]["science"] == 92
+
+    def test_nested_dict_update_in_place(self):
+        students = {
+            "Ana": {"math": 95, "science": 88},
+            "Ben": {"math": 78, "science": 92}
+        }
+        students["Ben"]["math"] = 82
+        assert students["Ben"]["math"] == 82
+        assert students["Ana"]["math"] == 95
+
+    def test_nested_dict_get_default(self):
+        students = {"Ana": {"math": 95}}
+        assert students["Ana"].get("history", "not taken") == "not taken"
+
+    def test_list_of_dicts(self):
+        enrolments = [
+            {"name": "Ana", "course": "Intro to Data"},
+            {"name": "Ben", "course": "Statistics"},
+        ]
+        assert enrolments[0]["name"] == "Ana"
+        assert enrolments[1]["course"] == "Statistics"
+        assert len(enrolments) == 2
 
     def test_dict_comprehension(self):
         squares = {x: x**2 for x in range(1, 6)}
@@ -176,6 +225,16 @@ class TestSets:
         unique = set(items)
         assert unique == {1, 2, 3}
 
+    def test_discard_missing_is_quiet(self):
+        grades = {"A", "B"}
+        grades.discard("Z")
+        assert grades == {"A", "B"}
+
+    def test_remove_missing_raises(self):
+        grades = {"A", "B"}
+        with pytest.raises(KeyError):
+            grades.remove("Z")
+
 
 class TestTuples:
     """Test tuple operations."""
@@ -211,3 +270,15 @@ class TestTuples:
     def test_tuple_index(self):
         t = (10, 20, 30)
         assert t.index(20) == 1
+
+    def test_tuple_slicing(self):
+        seats = (25, 25, 30)
+        assert seats[:2] == (25, 25)
+        assert seats[-1:] == (30,)
+        assert seats[0:99] == (25, 25, 30)
+        assert seats[9:] == ()
+
+    def test_tuple_membership(self):
+        seats = (25, 25, 30)
+        assert 30 in seats
+        assert 40 not in seats
