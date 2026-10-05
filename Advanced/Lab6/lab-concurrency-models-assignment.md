@@ -34,6 +34,20 @@ of network wait, repeated 200 times. Which single strategy do you expect to
 win, and what would a hybrid look like? (Hint: split the work — which part is
 CPU-bound and which is I/O-bound?)
 
+**Q9.** In the race demo, four threads ran the same
+read-read-modify-write loop with no lock and lost thousands of updates. But a
+bare `counter += 1` from several threads usually survives intact on CPython
+3.13. Why the difference, and what is the safe rule to take away?
+
+**Q10.** On Windows `mp.get_start_method()` returns `'spawn'`, while Linux
+defaults to `'fork'`. Name two practical consequences of the difference for a
+production worker pool, and say which one bit you in this lab.
+
+**Q11 (Code task).** Write a `threading.Thread`-based version of the race demo
+that is *safe* without using a `Lock` — by giving each thread its own counter —
+and print the total. Then explain in two sentences why that design scales
+happily to processes but not to threads sharing one object.
+
 ---
 
 ## Answer Key
@@ -85,4 +99,51 @@ print(f"speedup vs sequential: {cpu_seq / elapsed:.2f}x")
 compute portion (50 ms) is single-threaded anyway and the waits are asyncio's
 strength. A hybrid splits the workload: hand the CPU-heavy chunks to a
 `ProcessPoolExecutor` and keep the waiting parts on asyncio — e.g., a worker
-process computes the expensive part while coroutines manage all the I/O.
+process computes the expensive part while coroutines manage all the I/O. That
+is exactly what `loop.run_in_executor(pool, ...)` does (Section 7.9).
+
+**Q9.** `counter += 1` is a very short read-modify-write, and on CPython 3.13 it
+usually completes inside a single 5 ms switch window, so no other thread ever
+gets the GIL in the middle — it *looks* atomic. The lab's loop puts a yield
+point (`time.sleep(0)`, i.e. anything at all) between the read and the write, so
+the GIL is handed over mid-update and one thread's write is overwritten by
+another's stale value. The safe rule: never rely on an operation being atomic "in
+practice" — if the value is read, transformed, and written, guard it with a
+`Lock` (or make the update a single atomic operation such as
+`itertools.count`, a `queue`, or `dict.setdefault` semantics).
+
+**Q10.** `spawn` starts a brand-new interpreter that re-imports the parent's
+`__main__` by name; `fork` clones the parent, so memory (and open files,
+sockets, locks) is inherited. Consequences: (1) `spawn` is far slower to start
+and re-executes module-level code, which is why scripts need an
+`if __name__ == "__main__":` guard; (2) with `spawn` only importable,
+picklable callables and arguments can cross the boundary, and inherited
+descriptors can be a liability with `fork`. The one that bit this lab is the
+second: the `lambda` in Section 10, Step 5 could not be pickled, so all the work
+had to live at module level in `workloads.py`.
+
+**Q11.** Give each thread its own counter and sum them afterwards:
+
+```python
+import threading
+
+def bump_local(steps, results, slot):
+    total = 0
+    for _ in range(steps):
+        total += 1          # local variable - not shared state
+    results[slot] = total
+
+results = [0] * 4
+threads = [threading.Thread(target=bump_local, args=(2000, results, i)) for i in range(4)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+print(sum(results))        # always 8000, no lock required
+```
+
+Two sentences: with one counter *per* worker, nothing is shared, so there is no
+interleaving to protect — the same trick works for processes (each already has
+its own heap, which is why `COUNTER` stayed at 0 in the lab), but threads
+that genuinely need to *share* one object (a cache, a connection pool, a
+request counter) cannot opt out of sharing, so they still need a `Lock`.
